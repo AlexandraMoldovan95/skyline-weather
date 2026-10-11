@@ -412,8 +412,8 @@ body {
 }
 
 .search-field--country {
-  flex: 0 1 130px;
-  min-width: 110px;
+  flex: 0 1 190px;
+  min-width: 170px;
 }
 
 .search-field__label {
@@ -889,16 +889,16 @@ body {
             <label for="country-select" class="search-field__label">Country</label>
             <select id="country-select" name="country" class="search-field__select">
               <option value="">Any</option>
-              <option value="RO">RO — Romania</option>
-              <option value="US">US — USA</option>
-              <option value="GB">GB — United Kingdom</option>
-              <option value="FR">FR — France</option>
-              <option value="DE">DE — Germany</option>
-              <option value="IT">IT — Italy</option>
-              <option value="ES">ES — Spain</option>
-              <option value="NL">NL — Netherlands</option>
-              <option value="MD">MD — Moldova</option>
-              <option value="HU">HU — Hungary</option>
+              <option value="RO">Romania</option>
+              <option value="US">USA</option>
+              <option value="GB">United Kingdom</option>
+              <option value="FR">France</option>
+              <option value="DE">Germany</option>
+              <option value="IT">Italy</option>
+              <option value="ES">Spain</option>
+              <option value="NL">Netherlands</option>
+              <option value="MD">Moldova</option>
+              <option value="HU">Hungary</option>
             </select>
           </div>
 
@@ -1137,6 +1137,25 @@ function degToCompass(deg) {
 }
 
 /**
+ * Escapes HTML-significant characters before a value is interpolated into
+ * an innerHTML template string. Needed because the city name shown here can
+ * come straight from what the user typed in the search box (demo mode's
+ * fallback echoes it back as-is) - without this, typing something like
+ * <img onerror=...> as a "city" would execute as markup instead of
+ * displaying as plain text.
+ * @param {string} value
+ */
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+}
+
+/**
  * Renders the weather card from a weather payload - either the real
  * OpenWeatherMap response, or the mock payload built by getMockWeatherData()
  * while in demo mode.
@@ -1144,12 +1163,12 @@ function degToCompass(deg) {
  * @param {boolean} isDemo - adds a visible "sample data" tag to the card
  */
 function renderWeatherCard(data, isDemo = false) {
-  const cityName = data.name || '—';
-  const countryCode = data.sys?.country || '';
+  const cityName = escapeHtml(data.name || '—');
+  const countryCode = escapeHtml(data.sys?.country || '');
   const temp = Math.round(data.main?.temp);
   const feelsLike = Math.round(data.main?.feels_like);
-  const description = data.weather?.[0]?.description || '';
-  const iconCode = data.weather?.[0]?.icon || '01d';
+  const description = escapeHtml(data.weather?.[0]?.description || '');
+  const iconCode = encodeURIComponent(data.weather?.[0]?.icon || '01d');
   const humidity = data.main?.humidity;
   const pressure = data.main?.pressure;
   const windSpeedKmh = data.wind?.speed != null ? Math.round(data.wind.speed * 3.6) : null;
