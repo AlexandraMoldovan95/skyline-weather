@@ -1,0 +1,7 @@
+# Security headers, read by Netlify on every request (works with drag-and-drop deploys too).
+# nosniff: the browser doesn't guess file types. SAMEORIGIN: other sites can't frame these pages.
+# Referrer-Policy: other sites see only this site's address, not the full page URL.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
