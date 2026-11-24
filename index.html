@@ -33,8 +33,10 @@
   --sun-glow: #FFD98A;
 
   --ink-900: #10233E;      /* main text, near-black blue */
-  --ink-600: #3E5878;      /* secondary text */
-  --ink-400: #7B93AD;      /* tertiary text / placeholder */
+  /* 600 and 400 darkened after measuring the real pixels: on the glass cards
+     the old values gave 2-3.5:1. Now about 4.8:1 or more (WCAG AA is 4.5:1). */
+  --ink-600: #243C5A;      /* secondary text */
+  --ink-400: #405A77;      /* tertiary text / placeholder */
 
   --glass-fill: rgba(255, 255, 255, 0.34);
   --glass-fill-strong: rgba(255, 255, 255, 0.55);
@@ -42,7 +44,7 @@
   --glass-shadow: rgba(16, 35, 62, 0.25);
 
   --accent: #F2994A;       /* sunset orange, used sparingly */
-  --error: #C0392B;
+  --error: #7F1D12;        /* dark red: #C0392B measured about 3.4:1 on the glass */
 
   --font-display: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -311,10 +313,11 @@ body {
   border: none;
 }
 
+/* Dark text on the orange: white on this orange was about 2.3:1. */
 .btn--primary {
   margin-top: 18px;
   padding: 15px;
-  color: #fff;
+  color: var(--ink-900);
   background: linear-gradient(135deg, var(--accent), #E07B3E);
   box-shadow: 0 12px 24px -8px rgba(242, 153, 74, 0.6);
 }
@@ -349,8 +352,9 @@ body {
   text-decoration: none;
 }
 
+/* Darker on hover, not orange: orange text on the blue glass was unreadable. */
 .form__hint-link:hover {
-  color: var(--accent);
+  color: var(--ink-900);
   text-decoration: underline;
 }
 
@@ -483,7 +487,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #fff;
+  color: var(--ink-900);
   background: linear-gradient(135deg, var(--accent), #E07B3E);
   box-shadow: 0 12px 24px -8px rgba(242, 153, 74, 0.6);
 }
@@ -706,9 +710,9 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 18px 0 2px;
+  margin: 22px 0 18px;
   font-size: 12px;
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .demo-divider::before,
@@ -719,13 +723,20 @@ body {
   background: rgba(16, 35, 62, 0.15);
 }
 
+/* The demo comes first, as the orange main button: a visitor without a key
+   can look around right away. "Continue" with a key is the quieter button. */
 .btn--demo {
   width: 100%;
-  margin-top: 14px;
-  padding: 13px;
+  margin-top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.btn--continue {
+  margin-top: 18px;
+  padding: 13px;
+  font-size: 14px;
 }
 
 .demo-banner {
@@ -756,13 +767,18 @@ body {
   display: none;
 }
 
+/* An orange pill with dark text: orange text on the glass card was about 1.2:1. */
 .weather-card__demo-tag {
+  display: inline-block;
   margin: -2px 0 14px;
+  padding: 3px 9px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-900);
+  background: var(--accent);
+  border-radius: 999px;
 }
 
 /* ============================================
@@ -826,6 +842,9 @@ body {
         Your key stays only in this browser — it never passes through any server of ours.
       </p>
 
+      <button type="button" id="try-demo-btn" class="btn btn--primary btn--demo">Try the demo (no key needed)</button>
+      <div class="demo-divider"><span>or use your own key</span></div>
+
       <form id="login-form" class="form" novalidate>
         <label for="api-key" class="form__label">Your API key</label>
         <input
@@ -840,7 +859,7 @@ body {
 
         <p id="form-error" class="form__error" role="alert"></p>
 
-        <button type="submit" class="btn btn--primary">Continue</button>
+        <button type="submit" class="btn btn--ghost btn--continue">Continue</button>
 
         <a
           href="https://home.openweathermap.org/users/sign_up"
@@ -851,9 +870,6 @@ body {
           Don't have a key? Create one for free →
         </a>
       </form>
-
-      <div class="demo-divider"><span>or</span></div>
-      <button type="button" id="try-demo-btn" class="btn btn--ghost btn--demo">Try the demo (no key needed)</button>
     </div>
   </main>
 
