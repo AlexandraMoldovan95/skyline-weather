@@ -381,6 +381,30 @@ body {
   color: var(--ink-900);
 }
 
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* The header sits on the darkest part of the sky (#2B6CB0): dark text straight on it
+   is about 2:1, so the portfolio link there is a glass button like "Change key". */
+.btn--link { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.btn--link:focus-visible { outline: 2px solid var(--ink-900); outline-offset: 3px; }
+
+/* Way back to the author's portfolio on the key card. Same dark ink as the card's
+   secondary text, which measured about 4.8:1 or more on the glass. */
+.portfolio-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-600);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.portfolio-link:hover { color: var(--ink-900); text-decoration: underline; }
+.portfolio-link:focus-visible { outline: 2px solid var(--ink-900); outline-offset: 3px; border-radius: 4px; }
+.portfolio-link--card { display: block; width: max-content; margin-bottom: 14px; }
+
 .app-container {
   width: 100%;
   max-width: 560px;
@@ -836,6 +860,7 @@ body {
   <!-- SCREEN 1: Login / API Key -->
   <main id="login-screen" class="screen">
     <div class="card">
+      <a class="portfolio-link portfolio-link--card" href="https://alexandra-moldovan.netlify.app/#portfolio"><span aria-hidden="true">←</span> Portfolio</a>
       <div class="card__eyebrow">Step 1 of 3</div>
       <h1 class="card__title">Connect your key</h1>
       <p class="card__subtitle">
@@ -878,7 +903,10 @@ body {
   <main id="app-screen" class="screen screen--hidden">
     <header class="app-header">
       <div class="app-header__brand">Skyline</div>
-      <button id="logout-btn" class="btn btn--ghost">Change key</button>
+      <div class="app-header__actions">
+        <a class="btn btn--ghost btn--link" href="https://alexandra-moldovan.netlify.app/#portfolio"><span aria-hidden="true">←</span> Portfolio</a>
+        <button id="logout-btn" class="btn btn--ghost">Change key</button>
+      </div>
     </header>
 
     <div id="app-container" class="app-container">
