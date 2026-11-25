@@ -1,7 +1,12 @@
 # Security headers, read by Netlify on every request (works with drag-and-drop deploys too).
 # nosniff: the browser doesn't guess file types. SAMEORIGIN: other sites can't frame these pages.
 # Referrer-Policy: other sites see only this site's address, not the full page URL.
+# Content-Security-Policy: the page may only run app.js and load styles.css from this site,
+# fonts from Google Fonts, weather data from api.openweathermap.org and the weather icons
+# from openweathermap.org. No inline scripts or styles. "data:" is for the small arrow
+# drawn inside the country dropdown (an SVG in styles.css).
 /*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://openweathermap.org; connect-src https://api.openweathermap.org; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self';
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin

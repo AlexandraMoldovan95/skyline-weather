@@ -1,12 +1,12 @@
 # Skyline — Weather App
 
-A single-file weather app that uses each user's own API key (**BYOK — Bring Your Own Key**) to query [OpenWeatherMap](https://openweathermap.org/) — no account, no backend, no shared key.
+A small, static weather app that uses each user's own API key (**BYOK — Bring Your Own Key**) to query [OpenWeatherMap](https://openweathermap.org/) — no account, no backend, no shared key.
 
 **[Live demo →](https://skyline-weatherapp-c67411.netlify.app/)**
 
 ![Skyline screenshot](og-preview.png)
 
-**Stack:** HTML5 + CSS3 + vanilla JavaScript, in a single self-contained file (`index.html`). No frameworks, no build step, no dependencies to install.
+**Stack:** HTML5 + CSS3 + vanilla JavaScript, in three plain files (`index.html`, `styles.css`, `app.js`). No frameworks, no build step, no dependencies to install.
 
 ## Why this exists
 
@@ -22,26 +22,27 @@ A weather app is a well-worn exercise, so the interesting part here is the acces
 
 ## Design notes
 
-- **Why a single file:** maximum deploy simplicity — no bundler, no npm dependencies, the file works identically opened locally (`file://`) or hosted anywhere static.
+- **Why three plain files:** still no bundler and no npm dependencies, and the folder works the same opened locally (`file://`) or hosted anywhere static. The app started as a single `index.html`; the CSS and JavaScript moved into `styles.css` and `app.js` so the Content-Security-Policy can forbid inline scripts and styles.
+- **Content-Security-Policy:** sent as a real HTTP header from [`_headers`](_headers). The page may only run its own `app.js`, load fonts from Google Fonts, fetch weather data from `api.openweathermap.org` and show icons from `openweathermap.org`. If someone managed to inject markup (the city name is escaped before it's shown, see `app.js`), an inline script would still be blocked, so it couldn't read the key from `localStorage`.
 - **Security model (BYOK), stated plainly:** each user's key lives only in that browser's `localStorage` — isolated per browser/device, with no intermediary server and no key ever shared between users. The trade-off worth naming: the key is visible to anyone with DevTools access on that device, which is an accepted limitation for a prototype/personal project; an app with real users would need to proxy requests through a small backend instead.
 - **A debugging note worth keeping:** a weather icon that looked like a plain solid orange circle was initially suspected to be a broken image. Checking the actual network request directly in DevTools (status code, the real rendered `src`) confirmed it was simply OpenWeatherMap's genuine "clear sky" icon (`01d`) — a minimalist design, not a bug. The lesson that carried forward: verify the real request before assuming an unexpected visual is an error.
 - **Open Graph preview:** a dedicated `og-preview.png` (1200×630), in the same visual language as the app (sky gradient, glassmorphism card, sun icon), built specifically for the card that appears when the link is shared on WhatsApp, Slack, Discord, Twitter/X, LinkedIn, etc. The `<head>` sets full Open Graph + Twitter Card meta tags, plus an explicit `<meta name="description">` and a longer `<title>` for SEO. The image and URL meta tags use the Netlify domain's **absolute** URL, since social platforms need a complete link to fetch the image — if the site is renamed on Netlify or moved to a custom domain, those three tags need a manual update, or the social preview breaks (the typical symptom, "Failed to fetch image: Not Found", is checkable with [opengraph.xyz](https://www.opengraph.xyz/)).
 
 ## Tech stack
 
-Everything lives in one HTML file, in three clear sections:
+Three files, one job each:
 
-| Section | Contents |
+| File | Contents |
 |---|---|
-| `<style>` | Design tokens in `:root` (colors, fonts, radius), the animated background, the glassmorphism card, forms, the weather card, responsive rules |
-| `<body>` | Two screens: `#login-screen` and `#app-screen`, toggled with the `.screen--hidden` class |
-| `<script>` | Login/BYOK logic, search form logic, the fetch call and results rendering |
+| `styles.css` | Design tokens in `:root` (colors, fonts, radius), the animated background, the glassmorphism card, forms, the weather card, responsive rules |
+| `index.html` | Two screens: `#login-screen` and `#app-screen`, toggled with the `.screen--hidden` class |
+| `app.js` | Login/BYOK logic, demo mode, search form logic, the fetch call and results rendering |
 
 ## Deploying
 
 Fully static, so deployment is direct:
 
-- **Drag & drop (fastest):** go to [app.netlify.com/drop](https://app.netlify.com/drop), rename the file to `index.html` if needed, drop it in — Netlify generates a public URL automatically.
+- **Drag & drop (fastest):** go to [app.netlify.com/drop](https://app.netlify.com/drop) and drop the whole folder (`_headers` included, so the security headers apply) — Netlify generates a public URL automatically.
 - **From Git (recommended, for history + auto-redeploy):** connect this repo in Netlify (**Add new site → Import an existing project**). Build settings: no build command needed, publish directory `/`. Netlify redeploys automatically on every push to the main branch.
 
 Once live on a real URL (not `file://`), every visitor sees the login screen and has to enter their **own** OpenWeatherMap key — exactly the BYOK model described above. There is never a key of the project owner's stored in the code or exposed publicly.
@@ -49,7 +50,11 @@ Once live on a real URL (not `file://`), every visitor sees the login screen and
 ## Project structure
 
 ```
-index.html        — the whole application (BYOK login + search + weather card + OG meta tags)
+index.html         — markup: BYOK login screen, app screen, OG meta tags
+styles.css         — all the styles
+app.js             — all the logic (login, demo mode, search, fetch, rendering)
+_headers           — Netlify security headers (CSP, nosniff, framing, referrer)
+favicon.svg        — tab icon
 og-preview.png     — social-sharing preview image (must be deployed next to index.html)
 README.md
 ```

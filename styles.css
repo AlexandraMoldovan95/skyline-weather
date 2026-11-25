@@ -1,0 +1,823 @@
+/* Skyline styles. Kept in a file, not in the page, so the CSP (in _headers) can forbid inline styles. */
+/* ============================================
+   TOKENS
+   ============================================ */
+:root {
+  /* Midday-to-sunset sky — base palette */
+  --sky-top: #2B6CB0;      /* zenith blue */
+  --sky-mid: #6FA8DC;      /* mid blue */
+  --sky-horizon: #FDE9C8;  /* warm horizon light */
+  --sun-glow: #FFD98A;
+
+  --ink-900: #10233E;      /* main text, near-black blue */
+  /* 600 and 400 darkened after measuring the real pixels: on the glass cards
+     the old values gave 2-3.5:1. Now about 4.8:1 or more (WCAG AA is 4.5:1). */
+  --ink-600: #243C5A;      /* secondary text */
+  --ink-400: #405A77;      /* tertiary text / placeholder */
+
+  --glass-fill: rgba(255, 255, 255, 0.34);
+  --glass-fill-strong: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: rgba(16, 35, 62, 0.25);
+
+  --accent: #F2994A;       /* sunset orange, used sparingly */
+  --error: #7F1D12;        /* dark red: #C0392B measured about 3.4:1 on the glass */
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius-lg: 28px;
+  --radius-md: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink-900);
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ============================================
+   ANIMATED BACKGROUND SKY
+   ============================================ */
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    var(--sky-top) 0%,
+    var(--sky-mid) 55%,
+    var(--sky-horizon) 100%
+  );
+  overflow: hidden;
+}
+
+.sun {
+  position: absolute;
+  top: 12%;
+  right: 15%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sun-glow) 0%, rgba(255, 217, 138, 0) 70%);
+  filter: blur(2px);
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+.cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 100px;
+  filter: blur(1px);
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+
+.cloud--1 {
+  width: 200px;
+  height: 60px;
+  top: 20%;
+  left: -220px;
+  animation: drift 42s linear infinite;
+}
+.cloud--1::before { width: 90px; height: 90px; top: -45px; left: 20px; }
+.cloud--1::after { width: 70px; height: 70px; top: -30px; left: 100px; }
+
+.cloud--2 {
+  width: 140px;
+  height: 44px;
+  top: 55%;
+  left: -160px;
+  opacity: 0.7;
+  animation: drift 58s linear infinite;
+  animation-delay: -20s;
+}
+.cloud--2::before { width: 60px; height: 60px; top: -28px; left: 15px; }
+.cloud--2::after { width: 50px; height: 50px; top: -20px; left: 70px; }
+
+.cloud--3 {
+  width: 170px;
+  height: 50px;
+  top: 75%;
+  left: -200px;
+  opacity: 0.55;
+  animation: drift 50s linear infinite;
+  animation-delay: -10s;
+}
+.cloud--3::before { width: 70px; height: 70px; top: -35px; left: 18px; }
+.cloud--3::after { width: 55px; height: 55px; top: -24px; left: 85px; }
+
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100vw + 400px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sun, .cloud--1, .cloud--2, .cloud--3 {
+    animation: none;
+  }
+}
+
+/* ============================================
+   GENERAL LAYOUT
+   ============================================ */
+.screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.screen--hidden {
+  display: none;
+}
+
+/* ============================================
+   GLASS CARD (GLASSMORPHISM)
+   ============================================ */
+.card {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px 36px 36px;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow:
+    0 24px 60px -12px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.card__eyebrow {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-600);
+  margin-bottom: 10px;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  color: var(--ink-900);
+}
+
+.card__subtitle {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-600);
+  margin: 0 0 28px;
+}
+
+.card__subtitle strong {
+  color: var(--ink-900);
+}
+
+/* ============================================
+   FORMULAR
+   ============================================ */
+.form {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-900);
+  margin-bottom: 8px;
+}
+
+.form__input {
+  width: 100%;
+  padding: 14px 46px 14px 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink-900);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.form__input::placeholder {
+  color: var(--ink-400);
+  font-size: 13px;
+}
+
+.form__input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.form__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.form__input.is-invalid {
+  border-color: var(--error);
+}
+
+.form__toggle {
+  position: absolute;
+  right: 12px;
+  top: 38px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.form__toggle:hover {
+  opacity: 1;
+}
+
+.form__error {
+  min-height: 18px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--error);
+}
+
+/* ============================================
+   BUTOANE
+   ============================================ */
+.btn {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  border: none;
+}
+
+/* Dark text on the orange: white on this orange was about 2.3:1. */
+.btn--primary {
+  margin-top: 18px;
+  padding: 15px;
+  color: var(--ink-900);
+  background: linear-gradient(135deg, var(--accent), #E07B3E);
+  box-shadow: 0 12px 24px -8px rgba(242, 153, 74, 0.6);
+}
+
+.btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px -8px rgba(242, 153, 74, 0.7);
+}
+
+.btn--primary:active {
+  transform: translateY(0);
+}
+
+.btn--ghost {
+  padding: 9px 16px;
+  font-size: 13px;
+  color: var(--ink-900);
+  background: var(--glass-fill-strong);
+  border: 1px solid var(--glass-border);
+}
+
+.btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.form__hint-link {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-600);
+  text-decoration: none;
+}
+
+/* Darker on hover, not orange: orange text on the blue glass was unreadable. */
+.form__hint-link:hover {
+  color: var(--ink-900);
+  text-decoration: underline;
+}
+
+/* ============================================
+   MAIN APP SCREEN (Step 2+)
+   ============================================ */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  z-index: 10;
+}
+
+.app-header__brand {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* The header sits on the darkest part of the sky (#2B6CB0): dark text straight on it
+   is about 2:1, so the portfolio link there is a glass button like "Change key". */
+.btn--link { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.btn--link:focus-visible { outline: 2px solid var(--ink-900); outline-offset: 3px; }
+
+/* Way back to the author's portfolio on the key card. Same dark ink as the card's
+   secondary text, which measured about 4.8:1 or more on the glass. */
+.portfolio-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-600);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.portfolio-link:hover { color: var(--ink-900); text-decoration: underline; }
+.portfolio-link:focus-visible { outline: 2px solid var(--ink-900); outline-offset: 3px; border-radius: 4px; }
+.portfolio-link--card { display: block; width: max-content; margin-bottom: 14px; }
+
+.app-container {
+  width: 100%;
+  max-width: 560px;
+  margin-top: 40px;
+}
+
+/* ============================================
+   SEARCH FORM (Step 2)
+   ============================================ */
+.search-card {
+  padding: 28px;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow:
+    0 24px 60px -12px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 160px;
+}
+
+.search-field--country {
+  flex: 0 1 190px;
+  min-width: 170px;
+}
+
+.search-field__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-900);
+  margin-bottom: 7px;
+}
+
+.search-field__input,
+.search-field__select {
+  width: 100%;
+  padding: 13px 14px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  color: var(--ink-900);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  appearance: none;
+}
+
+.search-field__select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%233E5878'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.search-field__input::placeholder {
+  color: var(--ink-400);
+  font-size: 13.5px;
+}
+
+.search-field__input:focus,
+.search-field__select:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.search-field__input:focus-visible,
+.search-field__select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.search-field__input.is-invalid {
+  border-color: var(--error);
+}
+
+.search-form__error {
+  flex-basis: 100%;
+  min-height: 0;
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--error);
+}
+
+.btn--search {
+  flex: 0 0 auto;
+  height: 46px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-900);
+  background: linear-gradient(135deg, var(--accent), #E07B3E);
+  box-shadow: 0 12px 24px -8px rgba(242, 153, 74, 0.6);
+}
+
+.btn--search:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px -8px rgba(242, 153, 74, 0.7);
+}
+
+.btn--search svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   RESULTS AREA / LOADING STATE
+   ============================================ */
+.results {
+  margin-top: 24px;
+}
+
+.results--empty {
+  display: none;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 24px;
+  color: var(--ink-600);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+/* ============================================
+   ERROR STATE IN RESULTS
+   ============================================ */
+.result-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 28px;
+  text-align: center;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  animation: fade-in-up 0.35s ease both;
+}
+
+.result-error__icon {
+  font-size: 26px;
+}
+
+.result-error__message {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink-900);
+  max-width: 340px;
+}
+
+.result-error__action {
+  margin-top: 4px;
+  padding: 10px 20px;
+  font-size: 13.5px;
+}
+
+/* ============================================
+   WEATHER CARD
+   ============================================ */
+.weather-card {
+  padding: 32px;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow:
+    0 24px 60px -12px var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  animation: fade-in-up 0.4s ease both;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-card,
+  .result-error {
+    animation: none;
+  }
+}
+
+.weather-card__location {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-600);
+  margin: 0 0 4px;
+}
+
+.weather-card__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.weather-card__temp-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-card__temp {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-900);
+}
+
+.weather-card__desc {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-600);
+  text-transform: capitalize;
+}
+
+.weather-card__icon {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 16px rgba(16, 35, 62, 0.15));
+}
+
+.weather-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.weather-stat {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
+}
+
+.weather-stat__label {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+  margin-bottom: 4px;
+}
+
+.weather-stat__value {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-900);
+}
+
+.weather-stat__value strong {
+  font-weight: 700;
+}
+
+/* ============================================
+   DISABLED BUTTON WHILE LOADING
+   ============================================ */
+.btn--search:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn--search:disabled:hover {
+  transform: none;
+}
+
+/* ============================================
+   DEMO MODE (no API key)
+   ============================================ */
+.demo-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 18px;
+  font-size: 12px;
+  color: var(--ink-600);
+}
+
+.demo-divider::before,
+.demo-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(16, 35, 62, 0.15);
+}
+
+/* The demo comes first, as the orange main button: a visitor without a key
+   can look around right away. "Continue" with a key is the quieter button. */
+.btn--demo {
+  width: 100%;
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn--continue {
+  margin-top: 18px;
+  padding: 13px;
+  font-size: 14px;
+}
+
+.demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-900);
+  background: var(--glass-fill-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+.demo-banner__icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Higher specificity than .demo-banner's own display:flex, so the shared
+   .screen--hidden utility class still hides it correctly. */
+.demo-banner.screen--hidden {
+  display: none;
+}
+
+/* An orange pill with dark text: orange text on the glass card was about 1.2:1. */
+.weather-card__demo-tag {
+  display: inline-block;
+  margin: -2px 0 14px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-900);
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 24px 28px;
+  }
+
+  .card__title {
+    font-size: 26px;
+  }
+
+  .app-header {
+    padding: 16px 20px;
+  }
+
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-field--country {
+    flex-basis: auto;
+  }
+
+  .btn--search {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .weather-card__temp {
+    font-size: 52px;
+  }
+
+  .weather-card__icon {
+    width: 76px;
+    height: 76px;
+  }
+}
