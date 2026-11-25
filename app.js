@@ -159,7 +159,7 @@ const searchError = document.getElementById('search-error');
 const resultsContainer = document.getElementById('results');
 const searchSubmitBtn = searchForm.querySelector('button[type="submit"]');
 
-const WEATHER_API_BASE = 'https://api.openweathermap.org/data/2.5/weather';
+// WEATHER_API_BASE, buildWeatherUrl() and weatherErrorForStatus() are in logic.js.
 
 /**
  * Shows / hides the error under the search form.
@@ -206,33 +206,7 @@ function showResultError(message, showKeyAction = false) {
   }
 }
 
-/**
- * Converts wind direction from degrees to an approximate cardinal point.
- * @param {number} deg
- */
-function degToCompass(deg) {
-  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  return directions[Math.round(deg / 45) % 8];
-}
-
-/**
- * Escapes HTML-significant characters before a value is interpolated into
- * an innerHTML template string. Needed because the city name shown here can
- * come straight from what the user typed in the search box (demo mode's
- * fallback echoes it back as-is) - without this, typing something like
- * <img onerror=...> as a "city" would execute as markup instead of
- * displaying as plain text.
- * @param {string} value
- */
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  }[char]));
-}
+// degToCompass(), escapeHtml() and weatherView() are in logic.js.
 
 /**
  * Renders the weather card from a weather payload - either the real
@@ -242,16 +216,16 @@ function escapeHtml(value) {
  * @param {boolean} isDemo - adds a visible "sample data" tag to the card
  */
 function renderWeatherCard(data, isDemo = false) {
-  const cityName = escapeHtml(data.name || '—');
-  const countryCode = escapeHtml(data.sys?.country || '');
-  const temp = Math.round(data.main?.temp);
-  const feelsLike = Math.round(data.main?.feels_like);
-  const description = escapeHtml(data.weather?.[0]?.description || '');
-  const iconCode = encodeURIComponent(data.weather?.[0]?.icon || '01d');
-  const humidity = data.main?.humidity;
-  const pressure = data.main?.pressure;
-  const windSpeedKmh = data.wind?.speed != null ? Math.round(data.wind.speed * 3.6) : null;
-  const windDeg = data.wind?.deg;
+  const v = weatherView(data);   // the numbers and texts: logic.js
+  const cityName = escapeHtml(v.city);
+  const countryCode = escapeHtml(v.country);
+  const temp = v.temp;
+  const feelsLike = v.feelsLike;
+  const description = escapeHtml(v.description);
+  const iconCode = v.iconCode;
+  const humidity = v.humidity;
+  const pressure = v.pressure;
+  const windSpeedKmh = v.windKmh;
 
   resultsContainer.classList.remove('results--empty');
   resultsContainer.innerHTML = `
@@ -281,7 +255,7 @@ function renderWeatherCard(data, isDemo = false) {
         <div class="weather-stat">
           <div class="weather-stat__label">Wind</div>
           <div class="weather-stat__value">
-            <strong>${windSpeedKmh ?? '—'} km/h</strong>${windDeg != null ? ' ' + degToCompass(windDeg) : ''}
+            <strong>${windSpeedKmh ?? '—'} km/h</strong>${v.windDir ? ' ' + v.windDir : ''}
           </div>
         </div>
         <div class="weather-stat">
@@ -293,85 +267,7 @@ function renderWeatherCard(data, isDemo = false) {
   `;
 }
 
-// ============================================
-// Demo mode: fake weather data, no API key / no network call
-// ============================================
-
-// A handful of real cities get hand-picked, plausible-looking sample data.
-const DEMO_CITIES = {
-  'bucharest':    { name: 'Bucharest',    country: 'RO', temp: 23, feelsLike: 24, description: 'clear sky',         icon: '01d', humidity: 46, pressure: 1014, windKmh: 11, windDeg: 200 },
-  'london':       { name: 'London',       country: 'GB', temp: 14, feelsLike: 13, description: 'light rain',        icon: '10d', humidity: 78, pressure: 1008, windKmh: 19, windDeg: 250 },
-  'paris':        { name: 'Paris',        country: 'FR', temp: 17, feelsLike: 17, description: 'few clouds',        icon: '02d', humidity: 58, pressure: 1016, windKmh: 9,  windDeg: 180 },
-  'new york':     { name: 'New York',     country: 'US', temp: 19, feelsLike: 18, description: 'broken clouds',     icon: '04d', humidity: 52, pressure: 1012, windKmh: 14, windDeg: 290 },
-  'tokyo':        { name: 'Tokyo',        country: 'JP', temp: 21, feelsLike: 22, description: 'scattered clouds',  icon: '03d', humidity: 64, pressure: 1010, windKmh: 7,  windDeg: 90  },
-  'rome':         { name: 'Rome',         country: 'IT', temp: 26, feelsLike: 27, description: 'clear sky',         icon: '01d', humidity: 41, pressure: 1018, windKmh: 10, windDeg: 160 },
-  'berlin':       { name: 'Berlin',       country: 'DE', temp: 12, feelsLike: 10, description: 'overcast clouds',   icon: '04d', humidity: 70, pressure: 1006, windKmh: 21, windDeg: 230 },
-  'madrid':       { name: 'Madrid',       country: 'ES', temp: 28, feelsLike: 27, description: 'clear sky',         icon: '01d', humidity: 32, pressure: 1015, windKmh: 8,  windDeg: 140 },
-  'amsterdam':    { name: 'Amsterdam',    country: 'NL', temp: 13, feelsLike: 11, description: 'mist',              icon: '50d', humidity: 82, pressure: 1009, windKmh: 16, windDeg: 260 },
-  'chisinau':     { name: 'Chisinau',     country: 'MD', temp: 20, feelsLike: 20, description: 'few clouds',        icon: '02d', humidity: 55, pressure: 1013, windKmh: 10, windDeg: 210 },
-  'cluj-napoca':  { name: 'Cluj-Napoca',  country: 'RO', temp: 18, feelsLike: 17, description: 'scattered clouds',  icon: '03d', humidity: 60, pressure: 1011, windKmh: 12, windDeg: 220 },
-  'barcelona':    { name: 'Barcelona',    country: 'ES', temp: 24, feelsLike: 24, description: 'clear sky',         icon: '01d', humidity: 48, pressure: 1016, windKmh: 13, windDeg: 170 },
-};
-
-// Any other city still "works" in the demo: a small deterministic hash of
-// the name picks a condition and numbers in a plausible range, so the
-// search box isn't limited to the twelve cities above.
-const DEMO_CONDITIONS = [
-  { description: 'clear sky',        icon: '01d' },
-  { description: 'few clouds',       icon: '02d' },
-  { description: 'scattered clouds', icon: '03d' },
-  { description: 'broken clouds',    icon: '04d' },
-  { description: 'light rain',       icon: '10d' },
-  { description: 'thunderstorm',     icon: '11d' },
-  { description: 'snow',             icon: '13d' },
-  { description: 'mist',             icon: '50d' },
-];
-
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-/**
- * Builds a fake weather payload shaped exactly like an OpenWeatherMap
- * response, so renderWeatherCard() doesn't need to know it's fake.
- * @param {string} city
- * @param {string} country - 2-letter ISO code, or empty string
- */
-function getMockWeatherData(city, country) {
-  const key = city.trim().toLowerCase();
-  const preset = DEMO_CITIES[key];
-
-  if (preset) {
-    return {
-      name: preset.name,
-      sys: { country: country || preset.country },
-      main: { temp: preset.temp, feels_like: preset.feelsLike, humidity: preset.humidity, pressure: preset.pressure },
-      weather: [{ description: preset.description, icon: preset.icon }],
-      wind: { speed: preset.windKmh / 3.6, deg: preset.windDeg },
-    };
-  }
-
-  // Deterministic fallback, so typing any city still returns a result.
-  const h = hashString(key + country);
-  const condition = DEMO_CONDITIONS[h % DEMO_CONDITIONS.length];
-  return {
-    name: city.trim().replace(/\b\w/g, (c) => c.toUpperCase()),
-    sys: { country: country || '' },
-    main: {
-      temp: 4 + (h % 27),
-      feels_like: 2 + (h % 27),
-      humidity: 35 + (h % 50),
-      pressure: 995 + (h % 35),
-    },
-    weather: [condition],
-    wind: { speed: (2 + (h % 22)) / 3.6, deg: h % 360 },
-  };
-}
+// Demo mode's sample data and getMockWeatherData() are in logic.js.
 
 /**
  * Calls the OpenWeatherMap Current Weather Data API - or, in demo mode,
@@ -388,9 +284,7 @@ async function fetchWeather(city, country) {
     return;
   }
 
-  const apiKey = localStorage.getItem(STORAGE_KEY);
-  const query = country ? `${city},${country}` : city;
-  const url = `${WEATHER_API_BASE}?q=${encodeURIComponent(query)}&units=metric&lang=en&appid=${apiKey}`;
+  const url = buildWeatherUrl(city, country, localStorage.getItem(STORAGE_KEY));   // logic.js
 
   let response;
   try {
@@ -408,18 +302,9 @@ async function fetchWeather(city, country) {
     return;
   }
 
-  if (response.status === 401) {
-    showResultError('The API key looks invalid or has expired.', true);
-    return;
-  }
-
-  if (response.status === 404) {
-    showResultError('City not found. Check what you entered.');
-    return;
-  }
-
-  if (!response.ok) {
-    showResultError(`An unexpected error occurred (${response.status}). Try again.`);
+  const problem = weatherErrorForStatus(response.status);   // 401 / 404 / other: logic.js
+  if (problem) {
+    showResultError(problem.message, problem.showKeyAction);
     return;
   }
 

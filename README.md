@@ -6,7 +6,7 @@ A small, static weather app that uses each user's own API key (**BYOK — Bring 
 
 ![Skyline screenshot](og-preview.png)
 
-**Stack:** HTML5 + CSS3 + vanilla JavaScript, in three plain files (`index.html`, `styles.css`, `app.js`). No frameworks, no build step, no dependencies to install.
+**Stack:** HTML5 + CSS3 + vanilla JavaScript, in four plain files (`index.html`, `styles.css`, `logic.js`, `app.js`). No frameworks, no build step, no dependencies to install.
 
 ## Why this exists
 
@@ -22,7 +22,7 @@ A weather app is a well-worn exercise, so the interesting part here is the acces
 
 ## Design notes
 
-- **Why three plain files:** still no bundler and no npm dependencies, and the folder works the same opened locally (`file://`) or hosted anywhere static. The app started as a single `index.html`; the CSS and JavaScript moved into `styles.css` and `app.js` so the Content-Security-Policy can forbid inline scripts and styles.
+- **Why plain files:** still no bundler and no npm dependencies, and the folder works the same opened locally (`file://`) or hosted anywhere static. The app started as a single `index.html`; the CSS and JavaScript moved into `styles.css` and `app.js` so the Content-Security-Policy can forbid inline scripts and styles.
 - **Content-Security-Policy:** sent as a real HTTP header from [`_headers`](_headers). The page may only run its own `app.js`, load fonts from Google Fonts, fetch weather data from `api.openweathermap.org` and show icons from `openweathermap.org`. If someone managed to inject markup (the city name is escaped before it's shown, see `app.js`), an inline script would still be blocked, so it couldn't read the key from `localStorage`.
 - **Security model (BYOK), stated plainly:** each user's key lives only in that browser's `localStorage` — isolated per browser/device, with no intermediary server and no key ever shared between users. The trade-off worth naming: the key is visible to anyone with DevTools access on that device, which is an accepted limitation for a prototype/personal project; an app with real users would need to proxy requests through a small backend instead.
 - **A debugging note worth keeping:** a weather icon that looked like a plain solid orange circle was initially suspected to be a broken image. Checking the actual network request directly in DevTools (status code, the real rendered `src`) confirmed it was simply OpenWeatherMap's genuine "clear sky" icon (`01d`) — a minimalist design, not a bug. The lesson that carried forward: verify the real request before assuming an unexpected visual is an error.
@@ -30,13 +30,22 @@ A weather app is a well-worn exercise, so the interesting part here is the acces
 
 ## Tech stack
 
-Three files, one job each:
+Four files, one job each:
 
 | File | Contents |
 |---|---|
 | `styles.css` | Design tokens in `:root` (colors, fonts, radius), the animated background, the glassmorphism card, forms, the weather card, responsive rules |
 | `index.html` | Two screens: `#login-screen` and `#app-screen`, toggled with the `.screen--hidden` class |
-| `app.js` | Login/BYOK logic, demo mode, search form logic, the fetch call and results rendering |
+| `logic.js` | The pure logic, no page or network: the weather card's values, wind direction, escaping, the request URL, the error message per HTTP status, demo mode's sample data |
+| `app.js` | Login/BYOK logic, the search form, the fetch call and rendering |
+
+## Tests
+
+```bash
+node --test "tests/*.test.js"
+```
+
+16 unit tests for `logic.js`: temperatures rounded and wind converted from m/s to km/h with the right compass point (wrapping around north), missing fields not breaking the card, a city typed as markup shown as text, whatever is typed as the city unable to add parameters to the request, the message for 401 / 404 / other errors, and demo mode's sample data (the same city always gets the same weather). Plain Node, nothing to install, no API key; they run in CI on every push. The page itself (login, search, the card) is checked in a browser, with the requests to OpenWeatherMap answered locally.
 
 ## Deploying
 
@@ -52,7 +61,9 @@ Once live on a real URL (not `file://`), every visitor sees the login screen and
 ```
 index.html         — markup: BYOK login screen, app screen, OG meta tags
 styles.css         — all the styles
-app.js             — all the logic (login, demo mode, search, fetch, rendering)
+logic.js           — the pure logic (card values, compass, escaping, request URL, errors, demo data)
+app.js             — the page side (login, search, fetch, rendering)
+tests/             — unit tests for logic.js (node --test)
 _headers           — Netlify security headers (CSP, nosniff, framing, referrer)
 favicon.svg        — tab icon
 og-preview.png     — social-sharing preview image (must be deployed next to index.html)
