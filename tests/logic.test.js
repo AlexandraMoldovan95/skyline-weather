@@ -1,5 +1,5 @@
 // Tests for logic.js: the weather card's numbers, wind direction, escaping, the request URL,
-// the error messages per HTTP status, and demo mode's sample data.
+// the error messages per HTTP status, demo mode's sample data, and the theme choice.
 // No browser, no network, no API key.
 // Run:  node --test tests/
 const test = require("node:test");
@@ -131,4 +131,21 @@ test("demo: every preset city has the fields the card needs", () => {
     }
     assert.match(c.icon, /^\d\dd$/, key);
   }
+});
+
+// ---------- the theme ----------
+
+test("a saved theme choice wins over the system setting", () => {
+  assert.equal(L.pickTheme("light", true), "light");
+  assert.equal(L.pickTheme("dark", false), "dark");
+});
+
+test("with nothing saved, the system setting decides the theme", () => {
+  assert.equal(L.pickTheme(null, true), "dark");
+  assert.equal(L.pickTheme(null, false), "light");
+});
+
+test("a saved theme that isn't dark or light is ignored", () => {
+  assert.equal(L.pickTheme("purple", true), "dark");
+  assert.equal(L.pickTheme("", false), "light");
 });

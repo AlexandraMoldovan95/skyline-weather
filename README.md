@@ -18,6 +18,7 @@ A weather app is a well-worn exercise, so the interesting part here is the acces
 - **Search form** — city (free text, required) and country (a `<select>` of ISO two-letter codes, optional) — a `<select>` was chosen deliberately over free text for country, to avoid inconsistent input (e.g. "Romania" vs "ROU" vs "RO") breaking the API request.
 - **Weather card** — city + country, current temperature (large, prominent), the weather description with the official OpenWeatherMap icon, and a 2×2 grid of feels-like temperature, humidity, wind speed (converted from m/s to km/h plus compass direction), and pressure.
 - **Error handling, split explicitly by case:** a network failure gets its own message; a 401 (invalid key) shows a "Re-enter API key" button that clears the key and sends you back to login; a 404 (city not found) says so plainly; any other unexpected status shows a generic message with the status code attached, instead of failing silently.
+- **Day and night themes** — a button on both screens switches to a night sky (deep navy to dusk purple, the sun turned into a pale moon glow, dark glass, light text; the orange buttons keep their dark text). The choice is saved in this browser; on a first visit the system's dark/light setting decides. `theme-init.js` sets it in `<head>`, before the page is drawn, so it never flashes. Text contrast was measured on the real pixels in both themes (night: 5.6:1 or more).
 - **Small interaction details** — a `fade-in-up` entrance animation on the weather card that respects `prefers-reduced-motion`, and the search button disables itself while a request is in flight so a double-click can't fire duplicate requests.
 
 ## Design notes
@@ -34,10 +35,11 @@ Four files, one job each:
 
 | File | Contents |
 |---|---|
-| `styles.css` | Design tokens in `:root` (colors, fonts, radius), the animated background, the glassmorphism card, forms, the weather card, responsive rules |
+| `styles.css` | Design tokens in `:root` (colors, fonts, radius) and the night theme's values (`:root[data-theme="dark"]`), the animated background, the glassmorphism card, forms, the weather card, responsive rules |
 | `index.html` | Two screens: `#login-screen` and `#app-screen`, toggled with the `.screen--hidden` class |
-| `logic.js` | The pure logic, no page or network: the weather card's values, wind direction, escaping, the request URL, the error message per HTTP status, demo mode's sample data |
-| `app.js` | Login/BYOK logic, the search form, the fetch call and rendering |
+| `logic.js` | The pure logic, no page or network: the weather card's values, wind direction, escaping, the request URL, the error message per HTTP status, demo mode's sample data, the theme choice |
+| `theme-init.js` | Sets the day/night theme before the page is drawn (a separate file, since the CSP forbids inline scripts) |
+| `app.js` | Login/BYOK logic, the search form, the fetch call and rendering, the theme buttons |
 
 ## Tests
 
@@ -45,7 +47,7 @@ Four files, one job each:
 node --test "tests/*.test.js"
 ```
 
-16 unit tests for `logic.js`: temperatures rounded and wind converted from m/s to km/h with the right compass point (wrapping around north), missing fields not breaking the card, a city typed as markup shown as text, whatever is typed as the city unable to add parameters to the request, the message for 401 / 404 / other errors, and demo mode's sample data (the same city always gets the same weather). Plain Node, nothing to install, no API key; they run in CI on every push. The page itself (login, search, the card) is checked in a browser, with the requests to OpenWeatherMap answered locally.
+19 unit tests for `logic.js`: temperatures rounded and wind converted from m/s to km/h with the right compass point (wrapping around north), missing fields not breaking the card, a city typed as markup shown as text, whatever is typed as the city unable to add parameters to the request, the message for 401 / 404 / other errors, demo mode's sample data (the same city always gets the same weather), and the day/night theme choice (a saved choice wins over the system setting). Plain Node, nothing to install, no API key; they run in CI on every push. The page itself (login, search, the card) is checked in a browser, with the requests to OpenWeatherMap answered locally.
 
 ## Deploying
 
@@ -61,8 +63,9 @@ Once live on a real URL (not `file://`), every visitor sees the login screen and
 ```
 index.html         — markup: BYOK login screen, app screen, OG meta tags
 styles.css         — all the styles
-logic.js           — the pure logic (card values, compass, escaping, request URL, errors, demo data)
-app.js             — the page side (login, search, fetch, rendering)
+logic.js           — the pure logic (card values, compass, escaping, request URL, errors, demo data, theme choice)
+theme-init.js      — sets the day/night theme before the page is drawn (loaded in <head>, after logic.js)
+app.js             — the page side (login, search, fetch, rendering, theme buttons)
 tests/             — unit tests for logic.js (node --test)
 _headers           — Netlify security headers (CSP, nosniff, framing, referrer)
 favicon.svg        — tab icon

@@ -1,5 +1,6 @@
 // Skyline: the pure logic (no DOM, no network, no localStorage), shared by the page and the tests.
-// Loaded with a plain <script> before app.js, so everything here is a global there;
+// Loaded with a plain <script> in <head>, before theme-init.js (which needs pickTheme before the
+// page is drawn) and app.js, so everything here is a global there;
 // in Node (tests/logic.test.js) the same file is loaded with require().
 
 const WEATHER_API_BASE = 'https://api.openweathermap.org/data/2.5/weather';
@@ -160,9 +161,16 @@ function weatherView(data) {
   };
 }
 
+// The theme to show: the visitor's saved choice ('dark' or 'light', from the theme button) wins;
+// anything else, including nothing saved yet, follows the system setting.
+function pickTheme(saved, systemPrefersDark) {
+  if (saved === 'dark' || saved === 'light') return saved;
+  return systemPrefersDark ? 'dark' : 'light';
+}
+
 // In Node (the tests) `module` exists and the functions are exported; in the browser it doesn't,
 // so this is skipped and everything above stays a plain global for app.js.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { WEATHER_API_BASE, DEMO_CITIES, DEMO_CONDITIONS, degToCompass, escapeHtml, hashString,
-                     getMockWeatherData, buildWeatherUrl, weatherErrorForStatus, weatherView };
+                     getMockWeatherData, buildWeatherUrl, weatherErrorForStatus, weatherView, pickTheme };
 }

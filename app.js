@@ -355,3 +355,30 @@ cityInput.addEventListener('input', () => setSearchError(''));
 // call straight into enterDemoMode() via ?demo=1, which needs the search
 // elements above to already be declared).
 checkExistingKey();
+
+// ============================================
+// Day / night theme buttons (one on the key screen, one in the app header)
+// ============================================
+// theme-init.js already set data-theme before the page was drawn. A button switches it and
+// saves the choice, which then wins over the system setting on the next visit.
+// aria-pressed tells screen readers whether the night theme is on.
+const themeButtons = document.querySelectorAll('.theme-toggle');
+
+function syncThemeButtons() {
+  const night = document.documentElement.getAttribute('data-theme') === 'dark';
+  themeButtons.forEach((btn) => btn.setAttribute('aria-pressed', night ? 'true' : 'false'));
+}
+
+themeButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem('skyline-theme', next);
+    } catch (e) {
+      // Not saved (storage blocked): the choice lasts for this visit.
+    }
+    syncThemeButtons();
+  });
+});
+syncThemeButtons();
