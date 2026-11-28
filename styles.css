@@ -93,7 +93,26 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  /* a column as tall as the window at least: the screen, then the footer at the bottom */
+  height: auto;
+  display: flex;
+  flex-direction: column;
 }
+
+/* The footer: the name and licence, centred, straight on the sky (no bar, no border, no
+   background), in the secondary ink of each theme, so it reads like part of the horizon. Over
+   the warm horizon by day it's dark ink; at night the horizon is dusk purple and it's light. */
+.site-footer {
+  flex: none;
+  padding: 0 24px 22px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--ink-600);
+  text-shadow: 0 1px 0 var(--footer-halo, rgba(255, 255, 255, 0.35));
+}
+:root[data-theme="dark"] .site-footer { --footer-halo: rgba(0, 0, 0, 0.35); }
 
 /* ============================================
    ANIMATED BACKGROUND SKY
@@ -192,7 +211,7 @@ body {
    GENERAL LAYOUT
    ============================================ */
 .screen {
-  min-height: 100vh;
+  flex: 1 0 auto;   /* fills the window above the footer (body is a column) */
   display: flex;
   align-items: center;
   justify-content: center;
